@@ -1,45 +1,43 @@
 # working file to get the data, do some eda & test visualizations
 
+## load necessary packages
 library(RSocrata)
 library(tidyverse)
 library(jsonlite) 
+library(janitor)
+
 
 ## sf 311 data wite https://data.sfgov.org/City-Infrastructure/311-Cases/vw6y-z8j6/data
 ## api endpoints https://dev.socrata.com/docs/endpoints.html
 ## rsocrata useage https://dev.socrata.com/blog/2015/06/17/forecasting_with_rsocrata.html
 
-
-ls.socrata("https://data.sfgov.org/City-Infrastructure/311-Cases/vw6y-z8j6/data")
-
+## using rscorata, get a list of data available from sf open data
 sfdatasources <- ls.socrata("https://data.sfgov.org/")
 attributes(sfdata)
 
-head(sfdata$class)
-
-
-
-
-sfdata311 <- read.socrata("https://data.sfgov.org/api/views/vw6y-z8j6")
+# download full dataset using rsocrata
 sfdata311 <- read.socrata("https://data.sfgov.org/resource/vw6y-z8j6.json")
+#convert dates to POSIX
+sfdata311$date_req <-  posixify(sfdata311$requested_datetime)
+
+glimpse(sfdata311)
+
 sfdata311 %>%
   count(police_district)
 
+# save first dl...takes a long time to download...need to learn how to filter from json call
 saveRDS(sfdata311, file = "sfdata311.rds")
 # Restore the object
-sfdata311_rds <- readRDS(file = "sfdata311.rds")
+sf311data <- readRDS(file = "sfdata311.rds")
+glimpse(sf311data)
 
-sfdata311_t <- sfdata311 %>%
-  filter(police_district == "TARAVAL")
 
-sfdata3112 <- read.socrata("https://data.sfgov.org/resource/vw6y-z8j6.json") %>%
-  filter(police_district == "TRAVAL")
 
+
+## trying with jsonlite package. only got 90~ records, from current day
 sfdata3112 <- fromJSON('https://data.sfgov.org/resource/vw6y-z8j6.json')%>%
   filter(police_district == "TARAVAL")
 
 filenames <- list.files(pattern="https://data.sfgov.org/resource/vw6y-z8j6.json", full.names=TRUE)
 filenames
 
-glimpse(sfdata311)
-
-EMSIncidents <- read.socrata("https://data.austintexas.gov/resource/bptg-ndvw.json") 
